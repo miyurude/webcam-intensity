@@ -101,8 +101,8 @@
     document.getElementById('stopButton').addEventListener('click', stopMeasurement);
 
     function startMeasurement() {
-        intervalId1 = setInterval(() => measureIntensity(1), 100);
-        intervalId2 = setInterval(() => measureIntensity(2), 100);
+        intervalId1 = setInterval(() => measureIntensity(1), 10);  // Set to 10 milliseconds
+        intervalId2 = setInterval(() => measureIntensity(2), 10);  // Set to 10 milliseconds
         createChart('chart1', 'Intensity Measurements (Range 1)', []);
         createChart('chart2', 'Intensity Measurements (Range 2)', []);
     }
