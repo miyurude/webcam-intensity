@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webcam Pixel Intensity Measurement</title>
+<style>
+    #video {
+        width: 100%;
+        height: auto;
+    }
+    #canvas {
+        display: none; /* Hide the canvas */
+    }
+    .intensity-table {
+        display: inline-block;
+        margin-right: 20px;
+    }
+    .chart-container {
+        width: 400px;
+        height: 300px;
+        margin-top: 20px;
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div>
+    <label for="startX1">Start X (Range 1):</label>
+    <input type="number" id="startX1" value="0">
+    <label for="startY1">Start Y (Range 1):</label>
+    <input type="number" id="startY1" value="0">
+    <label for="endX1">End X (Range 1):</label>
+    <input type="number" id="endX1" value="50">
+    <label for="endY1">End Y (Range 1):</label>
+    <input type="number" id="endY1" value="50">
+    <br>
+    <label for="startX2">Start X (Range 2):</label>
+    <input type="number" id="startX2" value="0">
+    <label for="startY2">Start Y (Range 2):</label>
+    <input type="number" id="startY2" value="0">
+    <label for="endX2">End X (Range 2):</label>
+    <input type="number" id="endX2" value="50">
+    <label for="endY2">End Y (Range 2):</label>
+    <input type="number" id="endY2" value="50">
+    <button id="startButton">Start Measurement</button>
+    <button id="stopButton">Stop Measurement</button>
+</div>
+<div class="chart-container">
+    <canvas id="chart1"></canvas>
+</div>
+<div class="chart-container">
+    <canvas id="chart2"></canvas>
+</div>
+<video id="video" autoplay></video>
+<canvas id="canvas"></canvas>
+<div class="intensity-table" id="intensityTable1">
+    <h3>Intensity Measurements (Range 1)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Intensity</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<div class="intensity-table" id="intensityTable2">
+    <h3>Intensity Measurements (Range 2)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Intensity</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let intervalId1, intervalId2;
+    let chart1, chart2;
+
+    navigator.mediaDevices.getUserMedia({
+        video: {
+            facingMode: { exact: "environment" }
+        }
+    })
+    .then(stream => {
+        video.srcObject = stream;
+    })
+    .catch(err => {
+        console.error('Error accessing camera: ', err);
+    });
+
+    document.getElementById('startButton').addEventListener('click', startMeasurement);
+    document.getElementById('stopButton').addEventListener('click', stopMeasurement);
+
+    function startMeasurement() {
+        intervalId1 = setInterval(() => measureIntensity(1), 100);
+        intervalId2 = setInterval(() => measureIntensity(2), 100);
+        createChart('chart1', 'Intensity Measurements (Range 1)', []);
+        createChart('chart2', 'Intensity Measurements (Range 2)', []);
+    }
+
+    function stopMeasurement() {
+        clearInterval(intervalId1);
+        clearInterval(intervalId2);
+    }
+
+    function measureIntensity(range) {
+        const startX = parseInt(document.getElementById(`startX${range}`).value);
+        const startY = parseInt(document.getElementById(`startY${range}`).value);
+        const endX = parseInt(document.getElementById(`endX${range}`).value);
+        const endY = parseInt(document.getElementById(`endY${range}`).value);
+
+        const width = endX - startX;
+        const height = endY - startY;
+
+        canvas.width = width;
+        canvas.height = height;
+
+        ctx.drawImage(video, startX, startY, width, height, 0, 0, width, height);
+
+        const imageData = ctx.getImageData(0, 0, width, height).data;
+
+        let sum = 0;
+        for (let i = 0; i < imageData.length; i += 4) {
+            // Extracting the intensity from RGB values (assuming grayscale)
+            const intensity = (imageData[i] + imageData[i + 1] + imageData[i + 2]) / 3;
+            sum += intensity;
+        }
+
+        const averageIntensity = sum / (width * height);
+
+        const currentTime = new Date().toLocaleTimeString();
+        const intensityRow = {
+            time: currentTime,
+            intensity: averageIntensity.toFixed(2)
+        };
+
+        const intensityTable = document.getElementById(`intensityTable${range}`).querySelector('tbody');
+        intensityTable.insertAdjacentHTML('beforeend', `<tr><td>${intensityRow.time}</td><td>${intensityRow.intensity}</td></tr>`);
+
+        if (range === 1) {
+            updateChart('chart1', intensityRow);
+        } else if (range === 2) {
+            updateChart('chart2', intensityRow);
+        }
+    }
+
+    function createChart(canvasId, title, data) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        return new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: title,
+                    data: data,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+                            displayFormats: {
+                                second: 'h:mm:ss a'
+                            }
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Time'
+                        }
+                    }],
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Intensity'
+                        }
+                    }]
+                }
+            }
+        });
+    }
+
+    function updateChart(chartId, newData) {
+        const chart = Chart.getChart(chartId);
+        chart.data.labels.push(newData.time);
+        chart.data.datasets[0].data.push(newData.intensity);
+        chart.update();
+    }
+</script>
+</body>
+</html>
