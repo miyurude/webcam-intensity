@@ -1,3 +1,8 @@
+To change the interval for recording data points from every 0.01 seconds to every 0.1 seconds, you need to modify the setInterval function calls within the `startMeasurement` function. Update the interval from 10 milliseconds (0.01 seconds) to 100 milliseconds (0.1 seconds).
+
+Here's the updated code:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -107,8 +112,8 @@
     document.getElementById('stopButton').addEventListener('click', stopMeasurement);
 
     function startMeasurement() {
-        intervalId1 = setInterval(() => measureIntensity(1), 10);  // Set to 10 milliseconds
-        intervalId2 = setInterval(() => measureIntensity(2), 10);  // Set to 10 milliseconds
+        intervalId1 = setInterval(() => measureIntensity(1), 100);  // Set to 100 milliseconds
+        intervalId2 = setInterval(() => measureIntensity(2), 100);  // Set to 100 milliseconds
         createChart('chart1', 'Intensity Measurements (Range 1)', []);
         createChart('chart2', 'Intensity Measurements (Range 2)', []);
     }
@@ -207,3 +212,6 @@
 </script>
 </body>
 </html>
+```
+
+This change updates the data recording interval to every 0.1 seconds as requested.
