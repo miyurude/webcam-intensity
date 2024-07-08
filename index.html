@@ -1,8 +1,3 @@
-To display the two pixel ranges selected in two separate squares in the interface, we need to update the HTML and JavaScript code. We'll add two `<canvas>` elements to display the selected pixel ranges, and modify the JavaScript to draw the selected pixel ranges on these canvases.
-
-Here's the updated code:
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,6 +8,13 @@ Here's the updated code:
     #video {
         width: 100%;
         height: auto;
+    }
+    #overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+        pointer-events: none; /* Prevent interaction with the overlay */
     }
     #canvas {
         display: none; /* Hide the canvas */
@@ -30,15 +32,6 @@ Here's the updated code:
         text-align: center;
         font-size: 24px;
         margin-top: 20px;
-    }
-    .preview-container {
-        display: flex;
-        justify-content: center;
-        margin-top: 20px;
-    }
-    .preview {
-        border: 1px solid black;
-        margin-right: 10px;
     }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -72,12 +65,11 @@ Here's the updated code:
 <div class="chart-container">
     <canvas id="chart2"></canvas>
 </div>
-<video id="video" autoplay></video>
-<canvas id="canvas"></canvas>
-<div class="preview-container">
-    <canvas id="preview1" class="preview" width="100" height="100"></canvas>
-    <canvas id="preview2" class="preview" width="100" height="100"></canvas>
+<div style="position: relative;">
+    <video id="video" autoplay></video>
+    <canvas id="overlay"></canvas>
 </div>
+<canvas id="canvas"></canvas>
 <div class="intensity-table" id="intensityTable1">
     <h3>Intensity Measurements (Range 1)</h3>
     <table>
@@ -105,9 +97,9 @@ Here's the updated code:
 <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
+    const overlay = document.getElementById('overlay');
     const ctx = canvas.getContext('2d');
-    const preview1 = document.getElementById('preview1').getContext('2d');
-    const preview2 = document.getElementById('preview2').getContext('2d');
+    const overlayCtx = overlay.getContext('2d');
     let intervalId1, intervalId2;
     let chart1, chart2;
 
@@ -131,6 +123,7 @@ Here's the updated code:
         intervalId2 = setInterval(() => measureIntensity(2), 100);  // Set to 100 milliseconds
         createChart('chart1', 'Intensity Measurements (Range 1)', []);
         createChart('chart2', 'Intensity Measurements (Range 2)', []);
+        drawOverlay();
     }
 
     function stopMeasurement() {
@@ -174,16 +167,43 @@ Here's the updated code:
 
         if (range === 1) {
             updateChart('chart1', intensityRow);
-            drawPreview(preview1, startX, startY, width, height);
         } else if (range === 2) {
             updateChart('chart2', intensityRow);
-            drawPreview(preview2, startX, startY, width, height);
         }
+
+        drawOverlay();  // Redraw overlay on each measurement
     }
 
-    function drawPreview(previewCtx, startX, startY, width, height) {
-        previewCtx.clearRect(0, 0, 100, 100);
-        previewCtx.drawImage(video, startX, startY, width, height, 0, 0, 100, 100);
+    function drawOverlay() {
+        const startX1 = parseInt(document.getElementById('startX1').value);
+        const startY1 = parseInt(document.getElementById('startY1').value);
+        const endX1 = parseInt(document.getElementById('endX1').value);
+        const endY1 = parseInt(document.getElementById('endY1').value);
+
+        const startX2 = parseInt(document.getElementById('startX2').value);
+        const startY2 = parseInt(document.getElementById('startY2').value);
+        const endX2 = parseInt(document.getElementById('endX2').value);
+        const endY2 = parseInt(document.getElementById('endY2').value);
+
+        const width1 = endX1 - startX1;
+        const height1 = endY1 - startY1;
+
+        const width2 = endX2 - startX2;
+        const height2 = endY2 - startY2;
+
+        overlay.width = video.videoWidth;
+        overlay.height = video.videoHeight;
+
+        overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+
+        overlayCtx.strokeStyle = 'red';
+        overlayCtx.lineWidth = 2;
+
+        // Draw the first rectangle
+        overlayCtx.strokeRect(startX1, startY1, width1, height1);
+
+        // Draw the second rectangle
+        overlayCtx.strokeRect(startX2, startY2, width2, height2);
     }
 
     function createChart(canvasId, title, data) {
@@ -234,9 +254,3 @@ Here's the updated code:
 </script>
 </body>
 </html>
-```
-
-### Changes Made:
-1. **Added Preview Canvases**: Two new `<canvas>` elements with IDs `preview1` and `preview2` have been added to display the selected pixel ranges.
-2. **CSS for Preview Canvases**: Styling has been added for the preview canvases to display them side by side.
-3. **Drawing on Preview Canvases**: A new
