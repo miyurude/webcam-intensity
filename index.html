@@ -1,3 +1,8 @@
+To display the two pixel ranges selected in two separate squares in the interface, we need to update the HTML and JavaScript code. We'll add two `<canvas>` elements to display the selected pixel ranges, and modify the JavaScript to draw the selected pixel ranges on these canvases.
+
+Here's the updated code:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,6 +30,15 @@
         text-align: center;
         font-size: 24px;
         margin-top: 20px;
+    }
+    .preview-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    .preview {
+        border: 1px solid black;
+        margin-right: 10px;
     }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -60,6 +74,10 @@
 </div>
 <video id="video" autoplay></video>
 <canvas id="canvas"></canvas>
+<div class="preview-container">
+    <canvas id="preview1" class="preview" width="100" height="100"></canvas>
+    <canvas id="preview2" class="preview" width="100" height="100"></canvas>
+</div>
 <div class="intensity-table" id="intensityTable1">
     <h3>Intensity Measurements (Range 1)</h3>
     <table>
@@ -88,6 +106,8 @@
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+    const preview1 = document.getElementById('preview1').getContext('2d');
+    const preview2 = document.getElementById('preview2').getContext('2d');
     let intervalId1, intervalId2;
     let chart1, chart2;
 
@@ -107,8 +127,8 @@
     document.getElementById('stopButton').addEventListener('click', stopMeasurement);
 
     function startMeasurement() {
-        intervalId1 = setInterval(() => measureIntensity(1), 10);  // Set to 10 milliseconds
-        intervalId2 = setInterval(() => measureIntensity(2), 10);  // Set to 10 milliseconds
+        intervalId1 = setInterval(() => measureIntensity(1), 100);  // Set to 100 milliseconds
+        intervalId2 = setInterval(() => measureIntensity(2), 100);  // Set to 100 milliseconds
         createChart('chart1', 'Intensity Measurements (Range 1)', []);
         createChart('chart2', 'Intensity Measurements (Range 2)', []);
     }
@@ -154,9 +174,16 @@
 
         if (range === 1) {
             updateChart('chart1', intensityRow);
+            drawPreview(preview1, startX, startY, width, height);
         } else if (range === 2) {
             updateChart('chart2', intensityRow);
+            drawPreview(preview2, startX, startY, width, height);
         }
+    }
+
+    function drawPreview(previewCtx, startX, startY, width, height) {
+        previewCtx.clearRect(0, 0, 100, 100);
+        previewCtx.drawImage(video, startX, startY, width, height, 0, 0, 100, 100);
     }
 
     function createChart(canvasId, title, data) {
@@ -207,3 +234,9 @@
 </script>
 </body>
 </html>
+```
+
+### Changes Made:
+1. **Added Preview Canvases**: Two new `<canvas>` elements with IDs `preview1` and `preview2` have been added to display the selected pixel ranges.
+2. **CSS for Preview Canvases**: Styling has been added for the preview canvases to display them side by side.
+3. **Drawing on Preview Canvases**: A new
