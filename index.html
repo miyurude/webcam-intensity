@@ -58,6 +58,7 @@
     <input type="number" id="endY2" value="50">
     <button id="startButton">Start Measurement</button>
     <button id="stopButton">Stop Measurement</button>
+    <button id="clearButton">Clear Data</button>
 </div>
 <div class="chart-container">
     <canvas id="chart1"></canvas>
@@ -117,6 +118,7 @@
 
     document.getElementById('startButton').addEventListener('click', startMeasurement);
     document.getElementById('stopButton').addEventListener('click', stopMeasurement);
+    document.getElementById('clearButton').addEventListener('click', clearData);
 
     function startMeasurement() {
         intervalId1 = setInterval(() => measureIntensity(1), 100);  // Set to 100 milliseconds
@@ -249,6 +251,27 @@
         const chart = Chart.getChart(chartId);
         chart.data.labels.push(newData.time);
         chart.data.datasets[0].data.push(newData.intensity);
+        chart.update();
+    }
+
+    function clearData() {
+        clearTable('intensityTable1');
+        clearTable('intensityTable2');
+        clearChart('chart1');
+        clearChart('chart2');
+    }
+
+    function clearTable(tableId) {
+        const tableBody = document.getElementById(tableId).querySelector('tbody');
+        while (tableBody.firstChild) {
+            tableBody.removeChild(tableBody.firstChild);
+        }
+    }
+
+    function clearChart(chartId) {
+        const chart = Chart.getChart(chartId);
+        chart.data.labels = [];
+        chart.data.datasets[0].data = [];
         chart.update();
     }
 </script>
