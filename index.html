@@ -33,9 +33,6 @@
         font-size: 24px;
         margin-top: 20px;
     }
-    #chart1, #chart2 {
-        display: none; /* Hide Range 1 and Range 2 charts */
-    }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -114,7 +111,7 @@
     const ctx = canvas.getContext('2d');
     const overlayCtx = overlay.getContext('2d');
     let intervalId1, intervalId2;
-    let chart1, chart2, chart3;
+    let chart3;
     let intensity1, intensity2;
 
     navigator.mediaDevices.getUserMedia({
@@ -136,8 +133,6 @@
     function startMeasurement() {
         intervalId1 = setInterval(() => measureIntensity(1), 100);  // Set to 100 milliseconds
         intervalId2 = setInterval(() => measureIntensity(2), 100);  // Set to 100 milliseconds
-        createChart('chart1', 'Intensity Measurements (Range 1)', []);
-        createChart('chart2', 'Intensity Measurements (Range 2)', []);
         createChart('chart3', 'Subtracted Intensity Measurements', []);
         drawOverlay();
     }
@@ -183,10 +178,8 @@
 
         if (range === 1) {
             intensity1 = averageIntensity;
-            updateChart('chart1', intensityRow);
         } else if (range === 2) {
             intensity2 = averageIntensity;
-            updateChart('chart2', intensityRow);
         }
 
         if (intensity1 !== undefined && intensity2 !== undefined) {
@@ -285,8 +278,6 @@
         clearTable('intensityTable1');
         clearTable('intensityTable2');
         clearTable('intensityTable3');
-        clearChart('chart1');
-        clearChart('chart2');
         clearChart('chart3');
     }
 
