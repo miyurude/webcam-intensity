@@ -113,6 +113,9 @@
     let intervalId1, intervalId2;
     let chart3;
     let intensity1, intensity2;
+    let lastFilteredValue = 0;
+    const gain = 200;
+    const alpha = 0.05; // Filter coefficient for a simple low-pass filter
 
     navigator.mediaDevices.getUserMedia({
         video: {
@@ -183,7 +186,15 @@
         }
 
         if (intensity1 !== undefined && intensity2 !== undefined) {
-            const subtractedIntensity = intensity1 - intensity2;
+            let subtractedIntensity = intensity1 - intensity2;
+
+            // Apply low-pass filter
+            subtractedIntensity = alpha * subtractedIntensity + (1 - alpha) * lastFilteredValue;
+            lastFilteredValue = subtractedIntensity;
+
+            // Apply gain
+            subtractedIntensity *= gain;
+
             const subtractedRow = {
                 time: currentTime,
                 intensity: subtractedIntensity.toFixed(2)
